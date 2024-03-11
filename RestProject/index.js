@@ -1,5 +1,7 @@
 // Require the Express module
 const express = require("express");
+// Require the file system module
+const fs = require("fs");
 
 // Require the user data from a JSON file
 const users = require("./MOCK_DATA.json");
@@ -9,6 +11,9 @@ const app = express();
 
 // Define the port number
 const PORT = 8000;
+
+// Middleware to parse urlencoded bodies
+app.use(express.urlencoded({ extended: false }));
 
 // Define a route to get all users
 app.get("/api/users", (req, res) => {
@@ -40,8 +45,15 @@ app.route("/api/users/:id")
 
 // Define a route to create a new user (POST method)
 app.post("/api/users", (req, res) => {
-    // Return a status indicating the creation is pending
-    return res.json({ status: "pending" });
+    // Extract the request body
+    const body = req.body;
+    // Add a unique ID to the new user object
+    users.push({ ...body, id: users.length + 1 });
+    // Write the updated user data to the JSON file
+    fs.writeFile("./MOCK_DATA.json", JSON.stringify(users), (err, data) => {
+        // Return a success status and the ID of the new user
+        return res.json({ status: "success", id: users.length });
+    });
 });
 
 // Start the server and listen on the defined port
